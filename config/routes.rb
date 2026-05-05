@@ -6,5 +6,5 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   root "data_migrations#index"
-  resources :data_migrations, only: %i[index new]
+  resources :data_migrations, only: %i[index new show]
 end

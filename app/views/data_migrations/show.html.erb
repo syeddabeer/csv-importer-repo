@@ -1,0 +1,52 @@
+<div class="card">
+  <h1>Migration #<%= @migration.id %></h1>
+  <p>
+    <strong>File:</strong> <%= @migration.original_filename %><br>
+    <strong>Status:</strong> <span class="pill <%= @migration.status %>"><%= @migration.status %></span><br>
+    <strong>Started:</strong> <%= @migration.started_at %><br>
+    <strong>Finished:</strong> <%= @migration.finished_at %><br>
+    <strong>Duration:</strong> <%= @migration.duration_display %><br>
+    <strong>File SHA-256:</strong> <code><%= @migration.file_digest&.first(16) %>…</code>
+  </p>
+
+  <% if @migration.error_message.present? %>
+    <div class="flash alert"><%= @migration.error_message %></div>
+  <% end %>
+</div>
+
+<div class="card">
+  <h2>Statistics</h2>
+  <div class="stat-grid">
+    <div class="stat"><div class="n"><%= @migration.total_rows %></div><div class="l">Total rows</div></div>
+    <div class="stat"><div class="n"><%= @migration.imported_rows %></div><div class="l">Imported</div></div>
+    <div class="stat"><div class="n"><%= @migration.created_rows %></div><div class="l">Created</div></div>
+    <div class="stat"><div class="n"><%= @migration.updated_rows %></div><div class="l">Updated</div></div>
+    <div class="stat"><div class="n"><%= @migration.unchanged_rows %></div><div class="l">Unchanged</div></div>
+    <div class="stat"><div class="n"><%= @migration.skipped_rows %></div><div class="l">Skipped</div></div>
+    <div class="stat"><div class="n"><%= @migration.failed_rows %></div><div class="l">Failed</div></div>
+    <div class="stat"><div class="n"><%= @migration.success_rate %>%</div><div class="l">Success rate</div></div>
+  </div>
+</div>
+
+<% if @errors.any? %>
+  <div class="card">
+    <h2>Row-level issues (first 200)</h2>
+    <table>
+      <thead>
+        <tr><th>Line</th><th>Health #</th><th>Province</th><th>Errors</th></tr>
+      </thead>
+      <tbody>
+        <% @errors.each do |e| %>
+          <tr>
+            <td><%= e.line_number %></td>
+            <td><%= e.health_number %></td>
+            <td><%= e.health_number_province %></td>
+            <td><%= e.message_list.join("; ") %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>
+
+<p><%= link_to "← Back to migrations", root_path, class: "btn secondary" %></p>

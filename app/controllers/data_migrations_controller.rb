@@ -4,4 +4,9 @@ class DataMigrationsController < ApplicationController
   end
 
   def new; end
+
+  def show
+    @migration = DataMigration.find(params[:id])
+    @errors = @migration.data_migration_errors.order(:line_number).limit(200)
+  end
 end

@@ -1,3 +1,15 @@
 <div class="card">
-  <p>Upload form coming in the next step.</p>
+  <h1>Upload patient demographics CSV</h1>
+  <p>Choose the CSV exported from the source system. Re-uploading the same file is safe — patients
+     are matched on <code>(health_number, health_number_province)</code> and only changed fields are updated.</p>
+
+  <%= form_with url: data_migrations_path, method: :post, multipart: true, local: true do |f| %>
+    <p>
+      <%= f.file_field :file, accept: ".csv,text/csv" %>
+    </p>
+    <p>
+      <%= f.submit "Run migration", class: "btn" %>
+      <%= link_to "Cancel", root_path, class: "btn secondary" %>
+    </p>
+  <% end %>
 </div>
