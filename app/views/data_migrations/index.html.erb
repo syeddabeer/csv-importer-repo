@@ -1,0 +1,39 @@
+<div class="card">
+  <h1>Migrations</h1>
+  <p>
+    <%= link_to "New migration", new_data_migration_path, class: "btn" %>
+  </p>
+
+  <% if @migrations.any? %>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>File</th>
+          <th>Status</th>
+          <th>Imported</th>
+          <th>Failed</th>
+          <th>Duration</th>
+          <th>Started</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @migrations.each do |m| %>
+          <tr>
+            <td><%= m.id %></td>
+            <td><%= m.original_filename %></td>
+            <td><span class="pill <%= m.status %>"><%= m.status %></span></td>
+            <td><%= m.imported_rows %> / <%= m.total_rows %></td>
+            <td><%= m.failed_rows %></td>
+            <td><%= m.duration_display %></td>
+            <td><%= m.started_at&.strftime("%Y-%m-%d %H:%M") %></td>
+            <td><%= link_to "Details", data_migration_path(m) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p>No migrations yet. Upload a CSV to get started.</p>
+  <% end %>
+</div>
