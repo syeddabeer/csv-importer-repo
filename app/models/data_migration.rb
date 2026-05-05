@@ -1,42 +1,25 @@
-# Temporary placeholder so the UI renders before the real
-# ActiveRecord model + DB tables are introduced in the next step.
-# Will be replaced by `class DataMigration < ApplicationRecord` once
-# the patients / data_migrations tables exist.
-class DataMigration
-  ATTRS = %i[
-    id original_filename status started_at finished_at file_digest
-    error_message total_rows imported_rows created_rows updated_rows
-    unchanged_rows skipped_rows failed_rows
-  ].freeze
+class DataMigration < ApplicationRecord
+  STATUSES = %w[pending running completed failed].freeze
 
-  attr_accessor(*ATTRS)
+  has_many :data_migration_errors, dependent: :destroy
 
-  def self.recent = self
-  def self.limit(_n) = []
+  validates :status, inclusion: { in: STATUSES }
 
-  def self.find(id)
-    new.tap do |m|
-      m.id = id.to_i
-      m.original_filename = "(not yet implemented)"
-      m.status = "pending"
-      m.started_at = nil
-      m.finished_at = nil
-      m.file_digest = nil
-      m.error_message = nil
-      m.total_rows = 0
-      m.imported_rows = 0
-      m.created_rows = 0
-      m.updated_rows = 0
-      m.unchanged_rows = 0
-      m.skipped_rows = 0
-      m.failed_rows = 0
-    end
+  scope :recent, -> { order(created_at: :desc) }
+
+  def success_rate
+    return 0.0 if total_rows.zero?
+
+    ((imported_rows.to_f / total_rows) * 100).round(2)
   end
 
-  def duration_display = "—"
-  def success_rate = 0
-  def data_migration_errors = self
-  def order(_col) = self
-  def limit(_n) = []
-  def any? = false
+  def duration_display
+    return "—" unless duration_seconds
+
+    if duration_seconds < 1
+      "#{(duration_seconds * 1000).round} ms"
+    else
+      "#{duration_seconds.round(2)} s"
+    end
+  end
 end
