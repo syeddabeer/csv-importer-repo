@@ -18,7 +18,7 @@ require "digest"
 # (e.g. "Health #", "HealthNumber", "health_no").
 class PatientCsvImporter
   COLUMN_ALIASES = {
-    health_number:          [/\Ahealth[\s_-]*(number|no|num|id|#)\z/i, /\Ahin\z/i, /\Aphn\z/i],
+    health_number:          [/\Ahealth[\s_-]*(number|no|num|id|identifier|#)\z/i, /\Ahin\z/i, /\Aphn\z/i],
     health_number_province: [/health.*province/i, /\Aprovince[\s_-]*of[\s_-]*(origin|hin|health)/i, /\Ahin[\s_-]*province/i],
     first_name:             [/\Afirst[\s_-]*name\z/i, /\Agiven[\s_-]*name\z/i],
     last_name:              [/\Alast[\s_-]*name\z/i, /\A(sur|family)[\s_-]*name\z/i],
@@ -26,10 +26,10 @@ class PatientCsvImporter
     sex:                    [/\A(sex|gender)\z/i],
     email:                  [/\A(e[\s_-]*mail|email[\s_-]*address)\z/i],
     phone:                  [/\A(phone|telephone|phone[\s_-]*number|mobile|cell)\z/i],
-    address_line:           [/\A(address|street|address[\s_-]*line)\z/i],
-    city:                   [/\A(city|town|municipality)\z/i],
-    province:               [/\A(province|state|region)\z/i],
-    postal_code:            [/\A(postal[\s_-]*code|zip|zip[\s_-]*code)\z/i],
+    address_line:           [/\A(address|street|address[\s_-]*line|address[\s_-]*1|address[\s_-]*line[\s_-]*1)\z/i],
+    city:                   [/\A(address[\s_-]*)?(city|town|municipality)\z/i],
+    province:               [/\A(address[\s_-]*)?(province|state|region)\z/i],
+    postal_code:            [/\A(address[\s_-]*)?(postal[\s_-]*code|zip|zip[\s_-]*code)\z/i],
     country:                [/\Acountry\z/i]
   }.freeze
 
@@ -135,12 +135,24 @@ class PatientCsvImporter
     header_map.each do |attr, source_header|
       attrs[attr] = csv_row[source_header].to_s.strip.presence
     end
-    attrs[:health_number_province] = attrs[:health_number_province]&.upcase
+    attrs[:health_number_province] = Patient.normalize_province(attrs[:health_number_province])
+    attrs[:province]               = Patient.normalize_province(attrs[:province])
     attrs[:sex] = normalize_sex(attrs[:sex])
     attrs[:date_of_birth] = parse_date(attrs[:date_of_birth])
     attrs[:email] = attrs[:email]&.downcase
     attrs[:phone] = normalize_phone(attrs[:phone])
     attrs
+  end
+
+  # Accepts either a 2-letter code ("on", "ON") or a full name
+  # ("Ontario", "british columbia") and returns the canonical 2-letter
+  # code. Unknown values are upcased and returned as-is so that the model's
+  # inclusion validation surfaces a clear error.
+  def normalize_province(value)
+    return nil if value.blank?
+
+    key = value.strip.upcase.gsub(/[\s_-]+/, " ")
+    PROVINCE_NAMES[key] || key
   end
 
   def normalize_sex(value)

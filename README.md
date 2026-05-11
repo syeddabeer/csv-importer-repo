@@ -85,8 +85,11 @@ DESIGN.md              # design rationale
 
 The importer matches headers loosely via regex aliases (e.g. `HIN`,
 `Health #`, `health_no` all map to `health_number`). The only required
-columns are `health_number` and `health_number_province` (a 2-letter
-Canadian province/territory code). All other demographic fields are
+columns are `health_number` and `health_number_province`. The province
+value may be supplied as either a 2-letter Canadian postal code (`ON`,
+`bc`) or the full name (`Ontario`, `British Columbia`,
+`Newfoundland and Labrador`); the importer normalises it to the
+2-letter code before saving. All other demographic fields are
 optional.
 
 Minimal example:

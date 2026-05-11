@@ -106,11 +106,29 @@ Applied at the importer boundary, before the value reaches the model:
 
 | Field                    | Normalisation                                 |
 |--------------------------|-----------------------------------------------|
-| `health_number_province` | upcased (`on` → `ON`)                         |
+| `health_number_province` | full name or code → 2-letter code (`Ontario` → `ON`) |
+| `province` (address)     | same normalisation as `health_number_province` |
 | `sex`                    | mapped to `F` / `M` / `X` / `U`               |
 | `date_of_birth`          | parsed with `Date.parse`, nil on failure      |
 | `email`                  | downcased                                     |
 | `phone`                  | digits only (`(416) 555-0123` → `4165550123`) |
+
+Province normalisation is owned by the `Patient` model: a
+`PROVINCE_NAMES` constant maps every Canadian province / territory
+name (including `Québec`, `PEI` and `Newfoundland and Labrador`) to
+its 2-letter code, and a `before_validation` callback rewrites both
+`health_number_province` and the address `province` to the canonical
+code. Already-coded values (`ON`, `bc`) pass through after upcasing.
+Unknown values fall through to the inclusion validation, which
+produces a clear per-row error rather than silently corrupting data.
+
+Putting normalisation on the model — not just on the importer —
+guarantees the database only ever stores the canonical 2-letter code,
+no matter who writes a `Patient` (importer, console, seeds, future
+API). That keeps the unique index on
+`(health_number, health_number_province)` meaningful: the same
+patient can never end up stored twice as `("123", "ON")` and
+`("123", "Ontario")`.
 
 This keeps the database canonical (`Patient.where(email: "x@y.z")`
 just works) and keeps the model free of input-format guesswork.
