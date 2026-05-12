@@ -35,6 +35,9 @@ gem "bootsnap", require: false
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ]
+
+  # Rails 7.1 is incompatible with Minitest 6's changed run-signature.
+  gem "minitest", "~> 5.15"
 end
 
 group :development do
